@@ -7,6 +7,11 @@ import {
 } from "react-router-dom";
 import Main from './Screens/Main';
 import FindDoctors from './Screens/FindDoctors';
+import DoctorsDetails from './Screens/DoctorsDetails';
+import Login from './Screens/Login';
+import Signup from './Screens/Signup';
+import Docprofile from './Screens/Docprofile';
+import Account from './Screens/Account';
 
 const router = createBrowserRouter([
   {
@@ -16,6 +21,30 @@ const router = createBrowserRouter([
   {
     path: "/doctors",
     element: <div><FindDoctors/></div>,
+  },
+  {
+    path: "/doctors/:original_title",
+    element: <div><DoctorsDetails/></div>,
+  },
+  {
+    path: "/doctorprofile/:original_title",
+    element: <div><Docprofile/></div>,
+  },
+  {
+    path: "/userprofile/:original_title",
+    element: <div><Main/></div>,
+  },
+  {
+    path: "/login",
+    element: <div><Login/></div>,
+  },
+  {
+    path: "/signup",
+    element: <div><Signup/></div>,
+  },
+  {
+    path: "/account",
+    element: <div><Account/></div>,
   },
 ]);
 
