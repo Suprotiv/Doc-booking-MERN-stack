@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from 'cors';
 import cron from 'node-cron';
+import bcrypt from 'bcrypt';
 
 
 
@@ -143,17 +144,21 @@ app.post("/getDoctors", async (req, res) => {
 
 // Route to insert a new doctor
 app.post("/addDoctor", async (req, res) => {
-    const { name, email,password, phone, about, qualifications, languages, work_experience, hospital_ids, speciality_ids } = req.body;
+    const { name, email, password, phone, about, qualifications, languages, work_experience, hospital_ids, speciality_ids } = req.body;
 
     try {
         // Log the received data for debugging
         console.log('Received data:', { name, email, phone, about, qualifications, languages, work_experience, hospital_ids, speciality_ids });
 
+        // Hash the password before saving
+        const saltRounds = 10; // You can adjust the salt rounds as needed
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
         // Create new doctor
         const newDoctor = new Doctor({
             name,
             email,
-            password,
+            password: hashedPassword, // Store the hashed password
             phone,
             about,
             qualifications,
@@ -178,22 +183,34 @@ app.post("/addUser", async (req, res) => {
     const { name, email, phone, password } = req.body;
 
     try {
-        // Create new doctor
+        // Check if the user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          return res.status(400).json({ message: 'User already exists' });
+        }
+    
+        // Hash the password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+    
+        // Create a new user with the hashed password
         const newUser = new User({
-            name,
-            email,
-            phone,
-            password
+          name,
+          email,
+          phone,
+          password: hashedPassword,
+          // Add other fields if necessary
         });
-
-        // Save the doctor to the database
+    
+        // Save the user to the database
         await newUser.save();
-
-        res.status(201).json({ message: "User added successfully", user: newUser });
-    } catch (error) {
-        console.error("Error adding doctor:", error);
-        res.status(500).json({ message: "Internal server error" });
-    }
+    
+        res.status(201).json({ message: 'User registered successfully', user: newUser });
+    
+      } catch (error) {
+        console.error('Error registering user:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
 });
 
 app.post("/addBooking", async (req, res) => {
@@ -236,12 +253,15 @@ app.post("/addBooking", async (req, res) => {
 
   app.post("/getBookingsUser", async (req, res) => {
     const { userid,status } = req.body;
+    
   
     try {
       const bookings = await Booking.aggregate([
         {
-          $match: { userid: new mongoose.Types.ObjectId(userid) },
-          $match: { status:status }  // Convert userid to ObjectId
+        $match: {
+            userid: new mongoose.Types.ObjectId(userid), // Convert userid to ObjectId
+            status: status                               // Match status
+          }
         },
         {
           $lookup: {
@@ -273,6 +293,61 @@ app.post("/addBooking", async (req, res) => {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+
+
+  app.post("/getDoctorBookings", async (req, res) => {
+    const { docid, status } = req.body;
+  
+    try {
+      const bookings = await Booking.aggregate([
+        {
+          $match: {
+            docid: new mongoose.Types.ObjectId(docid), // Convert docid to ObjectId
+            status: status                              // Match status
+          }
+        },
+        {
+          $lookup: {
+            from: "users",                // Join with the users collection
+            localField: "userid",          // Field in Booking collection
+            foreignField: "_id",          // Field in users collection
+            as: "userDetails"             // Alias for joined documents
+          }
+        },
+        {
+          $unwind: "$userDetails"         // Unwind the joined documents
+        }
+      ]);
+  
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/updateBooking", async (req, res) => {
+    const { _id, status } = req.body;
+  
+    try {
+      // Update the status of the booking with the provided bookingid
+      const updatedBooking = await Booking.findByIdAndUpdate(
+        _id,
+        { status: status },
+        { new: true } // Return the updated document
+      );
+  
+      if (!updatedBooking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+  
+      res.json({ message: "Booking status updated successfully", booking: updatedBooking });
+    } catch (error) {
+      console.error("Error updating booking:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
   
   
   cron.schedule('0 0 * * *', async () => {  // Runs every day at midnight
@@ -285,3 +360,63 @@ app.post("/addBooking", async (req, res) => {
         console.error("Error removing expired bookings:", error);
     }
 });
+
+  app.post("/LoginUser", async (req, res) => {
+    const { email, password } = req.body;
+
+  try {
+    // Find the user by email
+    const user = await User.findOne({ email: email });
+
+    // Check if the user exists
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Compare the provided password with the stored hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    // If the passwords don't match, send an error response
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // If the passwords match, send a success response
+    res.json(user);
+
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+  });
+
+
+
+  app.post("/LoginDoctor", async (req, res) => {
+    const { email, password } = req.body;
+
+  try {
+    // Find the user by email
+    const user = await Doctor.findOne({ email: email });
+
+    // Check if the user exists
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Compare the provided password with the stored hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    // If the passwords don't match, send an error response
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // If the passwords match, send a success response
+    res.json(user);
+
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+  });

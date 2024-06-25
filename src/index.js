@@ -12,6 +12,9 @@ import Login from './Screens/Login';
 import Signup from './Screens/Signup';
 import Docprofile from './Screens/Docprofile';
 import Account from './Screens/Account';
+import Admin from './Screens/Admin';
+import ViralInfections from './Components/ViralInfections';
+import Profile from './Screens/Profile';
 
 const router = createBrowserRouter([
   {
@@ -23,8 +26,16 @@ const router = createBrowserRouter([
     element: <div><FindDoctors/></div>,
   },
   {
+    path: "/profile",
+    element: <div><Profile/></div>,
+  },
+  {
     path: "/doctors/:original_title",
     element: <div><DoctorsDetails/></div>,
+  },
+  {
+    path: "/admin",
+    element: <div><Admin/></div>,
   },
   {
     path: "/doctorprofile/:original_title",
@@ -37,6 +48,10 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <div><Login/></div>,
+  },
+  {
+    path: "/test",
+    element: <div><ViralInfections/></div>,
   },
   {
     path: "/signup",

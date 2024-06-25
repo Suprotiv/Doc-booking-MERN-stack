@@ -20,6 +20,8 @@ function FindDoctors() {
     const doctor = doctorFetched.find(doc => doc._id === doctorId);
     setSelectedDoctor(doctor);
   };
+
+  console.log(doctorFetched)
   
   useEffect(()=>{
     const fetchData = async () => {

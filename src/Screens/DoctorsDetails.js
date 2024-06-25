@@ -5,7 +5,7 @@ import Navbar from '../Components/Navbar';
 
 function DoctorsDetails() {
   const doctor = JSON.parse(window.localStorage.getItem('doctor'));
-  const user = window.localStorage.getItem('user');
+  const user = JSON.parse(window.localStorage.getItem('user'));
 
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -79,7 +79,7 @@ function DoctorsDetails() {
     }
 
     const bookingdata = {
-      userid: user,
+      userid: user._id,
       docid: doctor._id,
       time: selectedTime,
       date: selectedDate

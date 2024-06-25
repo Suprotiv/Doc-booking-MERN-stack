@@ -82,7 +82,7 @@ function Signup() {
             .then(data=>
                  {
                 navigate(`/doctorprofile/${data.doctor._id}`)
-                window.localStorage.setItem('user',data.doctor._id)
+                window.localStorage.setItem('user', JSON.stringify(data))
 
         })
             .catch(err=>console.log("internal Error Occured"))
@@ -103,7 +103,7 @@ function Signup() {
             .then(data=>
                 {
                     navigate(`/userprofile/${data.user._id}`)
-                    window.localStorage.setItem('user',data.user._id)
+                    window.localStorage.setItem('user', JSON.stringify(data))
                 })
             .catch(err=>console.log("internal Error Occured"))
         }

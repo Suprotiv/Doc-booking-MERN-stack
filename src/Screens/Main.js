@@ -4,10 +4,11 @@ import Footer from '../Components/Footer'
 import Midsection from '../Components/Midsection'
 import Topsection from '../Components/Topsection'
 import BottomSection from '../Components/BottomSection'
+import ViralInfections from '../Components/ViralInfections'
 
 function Main() {
   return (
-    <div className='h-screen'>
+    <div >
     <Navbar/>
     <div className='h-[6vh]'></div>
     <main className="relative">
@@ -28,6 +29,7 @@ function Main() {
     <Topsection/>
     <Midsection/>
     <BottomSection/>
+    <ViralInfections/>
     <Footer/>
     </div>
   )

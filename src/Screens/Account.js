@@ -5,16 +5,16 @@ import Savedbookings from '../Components/Savedbookings';
 function Account() {
 
   const[bookings,setBookings]=useState([])
-  const user = window.localStorage.getItem('user');
+  const user = JSON.parse(window.localStorage.getItem('user'));
   const[option,setOption]=useState('pending')
 
-  
+  console.log(user)
   useEffect(()=>{
 
     const FectchListings=(async()=>{
 
         const data={
-            userid:user,
+            userid:user._id,
             status:option
           }
         
@@ -34,7 +34,6 @@ function Account() {
     FectchListings()
 
   },[user,option])
-  console.log(bookings)
   return (
     <div><Navbar/>
        <div className='flex justify-center items-center gap-6 pt-[10vh]'>
